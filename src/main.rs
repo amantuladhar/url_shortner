@@ -14,11 +14,12 @@ async fn main() -> Result<(), Report> {
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(pool.clone()))
-            .service(Files::new("/", "./static/").index_file("index.html"))
+            .service(api::minify)
+            .service(api::get_all)
             .service(api::short)
             .service(api::insert)
-            .service(api::get_all)
             .service(api::json)
+            .service(Files::new("/", "./static/").index_file("index.html"))
     })
     .workers(2)
     .bind(("0.0.0.0", 8080))?
