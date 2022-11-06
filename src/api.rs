@@ -23,11 +23,6 @@ async fn json(payload: web::Json<UrlMap>) -> impl Responder {
     })
 }
 
-#[get("/")]
-pub async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
-}
-
 #[get("/short")]
 pub async fn short() -> impl Responder {
     HttpResponse::PermanentRedirect()

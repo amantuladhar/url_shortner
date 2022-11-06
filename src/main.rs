@@ -1,3 +1,4 @@
+use actix_files::Files;
 use actix_web::{web::Data, App, HttpServer};
 use color_eyre::Report;
 mod api;
@@ -13,7 +14,7 @@ async fn main() -> Result<(), Report> {
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(pool.clone()))
-            .service(api::hello)
+            .service(Files::new("/", "./static/").index_file("index.html"))
             .service(api::short)
             .service(api::insert)
             .service(api::get_all)
