@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use color_eyre::Report;
 use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
 

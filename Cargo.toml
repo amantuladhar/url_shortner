@@ -9,6 +9,7 @@ opt-level = 3
 [dependencies]
 actix-web = "4"
 dotenvy = "0.15.6"
+serde = {version = "1", features = ["derive"] }
 
 # Tracing and error
 color-eyre = "0.6.2"

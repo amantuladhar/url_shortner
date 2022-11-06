@@ -1,0 +1,11 @@
+POST http://localhost:8080/json
+Content-Type: application/json
+
+{
+    "short_url": "asdf",
+    "long_url": "asdf"
+}
+
+###
+
+GET http://localhost:8080

@@ -1,12 +1,26 @@
-use actix_web::{get, web::Data, HttpResponse, Responder};
+use actix_web::{
+    get, post,
+    web::{self, Data},
+    HttpResponse, Responder,
+};
+use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 
 type ConnPool = Pool<Sqlite>;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UrlMap {
     pub short_url: String,
     pub long_url: String,
+}
+
+#[post("/json")]
+async fn json(payload: web::Json<UrlMap>) -> impl Responder {
+    tracing::info!("{:?}", payload);
+    HttpResponse::Ok().json(UrlMap {
+        short_url: payload.short_url.clone(),
+        long_url: payload.long_url.clone(),
+    })
 }
 
 #[get("/")]

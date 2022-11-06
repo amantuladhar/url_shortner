@@ -17,6 +17,7 @@ async fn main() -> Result<(), Report> {
             .service(api::short)
             .service(api::insert)
             .service(api::get_all)
+            .service(api::json)
     })
     .workers(2)
     .bind(("0.0.0.0", 8080))?
