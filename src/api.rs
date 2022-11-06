@@ -33,12 +33,35 @@ async fn minify(input: web::Json<MinifyUrlInput>, data: Data<ConnPool>) -> impl 
     .fetch_optional(&data.as_ref().clone())
     .await
     {
-        Ok(url) => HttpResponse::Ok().json(url),
+        Ok(url) => {
+            if let Some(url) = url {
+                return HttpResponse::Ok().json(url);
+            }
+            let url = insert_minified_url(&input.url, &data.as_ref().clone())
+                .await
+                .unwrap();
+            HttpResponse::Ok().json(url)
+        }
         Err(e) => {
             tracing::error!("Error {e:?}");
             HttpResponse::BadRequest().json(format!("{e:?}"))
         }
     }
+}
+
+async fn insert_minified_url(url: &str, connection: &Pool<Sqlite>) -> Result<UrlMap, sqlx::Error> {
+    sqlx::query_as!(
+        UrlMap,
+        r#"
+        INSERT INTO url_map (short_url, long_url)
+        VALUES ($1, $2)
+        RETURNING short_url as "short_url!", long_url as "long_url!"
+        "#,
+        "bar",
+        url,
+    )
+    .fetch_one(connection)
+    .await
 }
 
 #[get("/get-all")]
