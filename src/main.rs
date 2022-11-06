@@ -3,6 +3,11 @@ use color_eyre::Report;
 use sqlx::sqlite::SqlitePoolOptions;
 mod setup;
 
+#[derive(Debug)]
+struct Person {
+    name: Option<String>,
+    age: Option<i64>,
+}
 #[tokio::main]
 async fn main() -> Result<(), Report> {
     setup::setup_log()?;
@@ -11,14 +16,26 @@ async fn main() -> Result<(), Report> {
         .max_connections(5)
         .connect("sqlite:./test_123123123.db?mode=rwc")
         .await?;
+    sqlx::migrate!().run(&pool).await?;
 
-    // Make a simple query to return the given parameter (use a question mark `?` instead of `$1` for MySQL)
-    let row: (i64,) = sqlx::query_as("SELECT $1")
-        .bind(150_i64)
-        .fetch_one(&pool)
+    let new_user = sqlx::query_as!(
+        Person,
+        r#"
+        INSERT INTO person (name, age)
+        VALUES ($1, $2)
+        RETURNING name, age
+        "#,
+        "Aman",
+        20,
+    )
+    .fetch_one(&pool.clone())
+    .await?;
+    println!("INSERT {new_user:?}");
+
+    let person = sqlx::query_as!(Person, "SELECT name, age FROM person")
+        .fetch_all(&pool)
         .await?;
-
-    assert_eq!(row.0, 150);
+    println!("SELECT {person:?}");
 
     HttpServer::new(|| App::new().service(hello).service(short))
         .workers(2)
