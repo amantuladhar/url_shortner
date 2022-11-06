@@ -1,11 +1,10 @@
-POST http://localhost:8080/json
+POST http://localhost:8080/minify
 Content-Type: application/json
 
 {
-    "short_url": "asdf",
-    "long_url": "asdf"
+    "url": "www.facebook.com"
 }
 
 ###
 
-GET http://localhost:8080
+GET http://localhost:8080/get-all

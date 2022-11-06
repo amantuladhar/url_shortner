@@ -5,6 +5,7 @@ use actix_web::{
 };
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
+use uuid::Uuid;
 
 type ConnPool = Pool<Sqlite>;
 
@@ -50,6 +51,7 @@ async fn minify(input: web::Json<MinifyUrlInput>, data: Data<ConnPool>) -> impl 
 }
 
 async fn insert_minified_url(url: &str, connection: &Pool<Sqlite>) -> Result<UrlMap, sqlx::Error> {
+    let uuid = generate_unique_short_url(connection).await?;
     sqlx::query_as!(
         UrlMap,
         r#"
@@ -57,11 +59,34 @@ async fn insert_minified_url(url: &str, connection: &Pool<Sqlite>) -> Result<Url
         VALUES ($1, $2)
         RETURNING short_url as "short_url!", long_url as "long_url!"
         "#,
-        "bar",
+        uuid,
         url,
     )
     .fetch_one(connection)
     .await
+}
+
+async fn generate_unique_short_url(connection: &Pool<Sqlite>) -> Result<String, sqlx::Error> {
+    loop {
+        let uuid = Uuid::new_v4().to_string();
+        let (id, _) = uuid.split_at(8);
+        match sqlx::query!(
+            r#"
+            SELECT short_url as "short_url!"
+            FROM url_map
+            WHERE short_url = ?;
+            "#,
+            id
+        )
+        .fetch_optional(connection)
+        .await?
+        {
+            Some(_) => continue,
+            None => {
+                return Ok(String::from(id));
+            }
+        }
+    }
 }
 
 #[get("/get-all")]
