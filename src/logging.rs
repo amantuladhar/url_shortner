@@ -1,10 +1,7 @@
 use color_eyre::Report;
 
 // Setup logs
-pub fn setup_log() -> Result<(), Report> {
-    // Setup env variable for dev env from .env files
-    dotenvy::dotenv().ok();
-
+pub fn log() -> Result<(), Report> {
     // Setup colorful backtrace for better error handling
     if std::env::var("RUST_LIB_BACKTRACE").is_err() {
         std::env::set_var("RUST_LIB_BACKTRACE", "1")

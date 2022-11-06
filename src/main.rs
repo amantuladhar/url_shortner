@@ -1,58 +1,26 @@
-use actix_web::{get, App, HttpResponse, HttpServer, Responder};
+use actix_web::{web::Data, App, HttpServer};
 use color_eyre::Report;
-use sqlx::sqlite::SqlitePoolOptions;
-mod setup;
+mod api;
+mod db;
+mod logging;
 
-#[derive(Debug)]
-struct Person {
-    name: Option<String>,
-    age: Option<i64>,
-}
 #[tokio::main]
 async fn main() -> Result<(), Report> {
-    setup::setup_log()?;
+    dotenvy::dotenv().ok(); // Load .env file if exist
+    logging::log()?;
+    let pool = db::setup_db().await?;
 
-    let pool = SqlitePoolOptions::new()
-        .max_connections(5)
-        .connect("sqlite:./test_123123123.db?mode=rwc")
-        .await?;
-    sqlx::migrate!().run(&pool).await?;
-
-    let new_user = sqlx::query_as!(
-        Person,
-        r#"
-        INSERT INTO person (name, age)
-        VALUES ($1, $2)
-        RETURNING name, age
-        "#,
-        "Aman",
-        20,
-    )
-    .fetch_one(&pool.clone())
+    HttpServer::new(move || {
+        App::new()
+            .app_data(Data::new(pool.clone()))
+            .service(api::hello)
+            .service(api::short)
+            .service(api::insert)
+            .service(api::get_all)
+    })
+    .workers(2)
+    .bind(("0.0.0.0", 8080))?
+    .run()
     .await?;
-    println!("INSERT {new_user:?}");
-
-    let person = sqlx::query_as!(Person, "SELECT name, age FROM person")
-        .fetch_all(&pool)
-        .await?;
-    println!("SELECT {person:?}");
-
-    HttpServer::new(|| App::new().service(hello).service(short))
-        .workers(2)
-        .bind(("0.0.0.0", 8080))?
-        .run()
-        .await?;
     Ok(())
-}
-
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
-}
-
-#[get("/short")]
-async fn short() -> impl Responder {
-    HttpResponse::PermanentRedirect()
-        .insert_header(("Location", "https://www.google.com"))
-        .body("")
 }
