@@ -1,0 +1,93 @@
+{
+  "db": "SQLite",
+  "8ac184cf66693fa816ae37e4001a1e98125ed0631e38272a9f7be2b13ed8404d": {
+    "describe": {
+      "columns": [
+        {
+          "name": "long_url!",
+          "ordinal": 0,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "\n        SELECT long_url as \"long_url!\"\n        FROM url_map\n        WHERE short_url = ?;\n        "
+  },
+  "96337a23c07d60990f2f03a3a77782bf5c759ef1ad58ea25b04ba37e411f4742": {
+    "describe": {
+      "columns": [
+        {
+          "name": "short_url",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "long_url",
+          "ordinal": 1,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 0
+      }
+    },
+    "query": "SELECT short_url, long_url FROM url_map;"
+  },
+  "c6dbb317de8303042bac1513c28134dc70b2b305d0e558af93b91c952293bd51": {
+    "describe": {
+      "columns": [
+        {
+          "name": "short_url!",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "long_url!",
+          "ordinal": 1,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        true,
+        true
+      ],
+      "parameters": {
+        "Right": 2
+      }
+    },
+    "query": "\n        INSERT INTO url_map (short_url, long_url)\n        VALUES ($1, $2)\n        RETURNING short_url as \"short_url!\", long_url as \"long_url!\"\n        "
+  },
+  "decf646b43e464b491db28f87db640c13f230238afddb64540fad650b77f3229": {
+    "describe": {
+      "columns": [
+        {
+          "name": "short_url",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "long_url",
+          "ordinal": 1,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "\n            SELECT short_url, long_url\n            FROM url_map\n            WHERE long_url = ?;\n        "
+  }
+}

@@ -25,3 +25,7 @@
 
 ## Run migration as part of app startup
 > sqlx::migrate!().run(&pool).await?;
+
+## Offline representation of database
+> cargo sqlx prepare
+- Need "offline" feature of sqlx
