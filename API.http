@@ -1,10 +1,14 @@
-POST http://localhost:8080/minify
+POST http://localhost:8080/api/minify
 Content-Type: application/json
 
 {
-    "url": "www.facebook.com"
+    "url": "www.google.com"
 }
 
 ###
 
-GET http://localhost:8080/get-all
+GET http://localhost:8080/api/get-all
+
+###
+
+GET http://localhost:8080/e8759165

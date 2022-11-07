@@ -20,6 +20,14 @@ pub struct MinifyUrlInput {
     pub url: String,
 }
 
+pub fn config(cfg: &mut web::ServiceConfig) {
+    cfg.service(redirect_by_short_url);
+    cfg.service(web::scope("/api").configure(|scoped_cfg| {
+        scoped_cfg.service(get_all);
+        scoped_cfg.service(minify);
+    }));
+}
+
 #[post("/minify")]
 async fn minify(input: web::Json<MinifyUrlInput>, data: Data<ConnPool>) -> impl Responder {
     match sqlx::query_as!(
@@ -50,6 +58,34 @@ async fn minify(input: web::Json<MinifyUrlInput>, data: Data<ConnPool>) -> impl 
     }
 }
 
+#[get("/{short_url}")] // <- define path parameters
+async fn redirect_by_short_url(path: web::Path<String>, data: Data<ConnPool>) -> impl Responder {
+    tracing::info!("Path :: {path:?}");
+    match find_by_short_url(path.as_ref(), &data).await {
+        None => HttpResponse::BadRequest().body(""),
+        Some(url) => {
+            let full_url = format!("https://{url}");
+            HttpResponse::PermanentRedirect()
+                .insert_header(("Location", full_url))
+                .body("")
+        }
+    }
+}
+
+#[get("/get-all")]
+async fn get_all(data: Data<ConnPool>) -> impl Responder {
+    match sqlx::query_as!(UrlMap, "SELECT short_url, long_url FROM url_map;")
+        .fetch_all(&data.as_ref().clone())
+        .await
+    {
+        Ok(urls) => HttpResponse::Ok().json(urls),
+        Err(e) => {
+            tracing::error!("Error occured while fetching data, {e}");
+            HttpResponse::BadRequest().body(format!("{e:?}"))
+        }
+    }
+}
+
 async fn insert_minified_url(url: &str, connection: &Pool<Sqlite>) -> Result<UrlMap, sqlx::Error> {
     let uuid = generate_unique_short_url(connection).await?;
     sqlx::query_as!(
@@ -70,17 +106,7 @@ async fn generate_unique_short_url(connection: &Pool<Sqlite>) -> Result<String, 
     loop {
         let uuid = Uuid::new_v4().to_string();
         let (id, _) = uuid.split_at(8);
-        match sqlx::query!(
-            r#"
-            SELECT short_url as "short_url!"
-            FROM url_map
-            WHERE short_url = ?;
-            "#,
-            id
-        )
-        .fetch_optional(connection)
-        .await?
-        {
+        match find_by_short_url(id, connection).await {
             Some(_) => continue,
             None => {
                 return Ok(String::from(id));
@@ -89,55 +115,20 @@ async fn generate_unique_short_url(connection: &Pool<Sqlite>) -> Result<String, 
     }
 }
 
-#[get("/get-all")]
-async fn get_all(data: Data<ConnPool>) -> impl Responder {
-    match sqlx::query_as!(UrlMap, "SELECT short_url, long_url FROM url_map;")
-        .fetch_all(&data.as_ref().clone())
-        .await
-    {
-        Ok(_urls) => HttpResponse::Ok().body(format!("{_urls:?}")),
-        Err(e) => {
-            tracing::error!("Error occured while fetching data, {e}");
-            HttpResponse::BadRequest().body(format!("{e:?}"))
-        }
-    }
-}
-
-#[post("/json")]
-async fn json(payload: web::Json<UrlMap>) -> impl Responder {
-    tracing::info!("{:?}", payload);
-    HttpResponse::Ok().json(UrlMap {
-        short_url: payload.short_url.clone(),
-        long_url: payload.long_url.clone(),
-    })
-}
-
-#[get("/short")]
-pub async fn short() -> impl Responder {
-    HttpResponse::PermanentRedirect()
-        .insert_header(("Location", "https://www.google.com"))
-        .body("")
-}
-
-#[get("/insert")]
-async fn insert(data: Data<ConnPool>) -> impl Responder {
-    match sqlx::query_as!(
-        UrlMap,
+async fn find_by_short_url(short_url: &str, connection: &ConnPool) -> Option<String> {
+    match sqlx::query!(
         r#"
-        INSERT INTO url_map (short_url, long_url)
-        VALUES ($1, $2)
-        RETURNING short_url as "short_url!", long_url as "long_url!"
+        SELECT long_url as "long_url!"
+        FROM url_map
+        WHERE short_url = ?;
         "#,
-        "foo",
-        "www.google.com",
+        short_url
     )
-    .fetch_one(&data.as_ref().clone())
+    .fetch_optional(connection)
     .await
+    .unwrap_or(None)
     {
-        Err(e) => {
-            tracing::error!("Unable to insert the row, {e}");
-            HttpResponse::BadRequest().body("")
-        }
-        Ok(_user) => HttpResponse::Ok().body(""),
+        Some(val) => Some(val.long_url),
+        None => None,
     }
 }

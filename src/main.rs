@@ -13,12 +13,8 @@ async fn main() -> Result<(), Report> {
 
     HttpServer::new(move || {
         App::new()
+            .configure(api::config)
             .app_data(Data::new(pool.clone()))
-            .service(api::minify)
-            .service(api::get_all)
-            .service(api::short)
-            .service(api::insert)
-            .service(api::json)
             .service(Files::new("/", "./static/").index_file("index.html"))
     })
     .workers(2)
