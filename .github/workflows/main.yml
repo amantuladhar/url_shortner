@@ -42,7 +42,7 @@ jobs:
       - name: Setup database url env file
         working-directory: "./deploy"
         run: |
-          sed -i 's/.*DATABASE_URL=.*/export DATABASE_URL=${{ secrets.DB_URL }}/g' runapp.sh && \
+          sed -i '' 's/.*DATABASE_URL=.*/export DATABASE_URL=${{ secrets.DB_URL }}/g' runapp.sh && \
           cat ./runapp.sh
 
       # - name: Install AWS CLI 2
