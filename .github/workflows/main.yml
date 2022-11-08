@@ -18,28 +18,30 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up cargo cache
-        uses: actions/cache@v3
-        continue-on-error: false
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
+      # - name: Set up cargo cache
+      #   uses: actions/cache@v3
+      #   continue-on-error: false
+      #   with:
+      #     path: |
+      #       ~/.cargo/bin/
+      #       ~/.cargo/registry/index/
+      #       ~/.cargo/registry/cache/
+      #       ~/.cargo/git/db/
+      #       target/
+      #     key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      #     restore-keys: ${{ runner.os }}-cargo-
       # - name: Build
       #   run: cargo build --release
       - name: Setup Deploy
-        # cp ./target/release/rust_url_shortner ./deploy/url_shortner && \
         run: |
           mkdir deploy && \
+          cp ./target/release/rust_url_shortner ./deploy/url_shortner && \
           cp ./appspec.yml ./deploy/appspec.yml && \
-          sed -i '' 's/^export DATABASE_URL=.*/export DATABASE_URL=${{ secrets.DB_URL }}/' scripts/runapp.sh && \
           cp ./scripts/runapp.sh ./deploy/runspp.sh && \
           cp ./scripts/stopapp.sh ./deploy/stopapp.sh && \
+      - name: Setup database url env file
+        run: |
+          sed -i '' 's/^export DATABASE_URL=.*/export DATABASE_URL=${{ secrets.DB_URL }}/' ./deploy/runapp.sh && \
           cat ./deploy/runapp.sh
 
       # - name: Install AWS CLI 2
