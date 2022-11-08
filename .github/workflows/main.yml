@@ -39,7 +39,7 @@ jobs:
           cp ./appspec.yml ./deploy/appspec.yml && \
           cp ./scripts/runapp.sh ./deploy/runspp.sh && \
           cp ./scripts/stopapp.sh ./deploy/stopapp.sh && \
-          sed -i 's/^export DATABASE_URL=.*/export DATABASE_URL=${{ secrets.DB_URL }}/' ./deploy/runapp.sh && \
+          sed -i '' 's/^export DATABASE_URL=.*/export DATABASE_URL=${{ secrets.DB_URL }}/' deploy/runapp.sh && \
           cat ./deploy/runapp.sh
 
       # - name: Install AWS CLI 2
