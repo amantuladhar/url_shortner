@@ -2,6 +2,7 @@ use actix_files::Files;
 use actix_web::{web::Data, App, HttpServer};
 use color_eyre::Report;
 mod api;
+mod asset;
 mod db;
 mod logging;
 
@@ -13,9 +14,10 @@ async fn main() -> Result<(), Report> {
 
     HttpServer::new(move || {
         App::new()
+            .service(asset::index)
             .configure(api::config)
             .app_data(Data::new(pool.clone()))
-            .service(Files::new("/", "./static/").index_file("index.html"))
+        // .service(Files::new("/", "./static/").index_file("index.html"))
     })
     .workers(2)
     .bind(("0.0.0.0", 8080))?
