@@ -40,10 +40,10 @@ jobs:
           cp ./scripts/runapp.sh ./deploy/runapp.sh && \
           cp ./scripts/stopapp.sh ./deploy/stopapp.sh
       - name: Setup database url env file
+        working-directory: "./deploy"
         run: |
-          ls -lah ./deploy && \
-          sh -c "sed -i 's/^export DATABASE_URL=.*/export DATABASE_URL=${{ secrets.DB_URL }}/' deploy/runapp.sh" && \
-          cat ./deploy/runapp.sh
+          sed -i 's/.*DATABASE_URL=.*/export DATABASE_URL=${{ secrets.DB_URL }}/' runapp.sh && \
+          cat ./runapp.sh
 
       # - name: Install AWS CLI 2
       #   run: |
