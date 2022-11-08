@@ -34,7 +34,7 @@ jobs:
         run: cargo build --release
       - name: Setup Deploy
         run: |
-          mkdir -p deploy \
+          mkdir deploy \
           cp ./target/release/rust_url_shortner ./deploy/url_shortner \
           cp ./appspec.yml ./deploy/appspec.yml \
           cp ./scripts/runapp.sh ./deploy/runspp.sh \
