@@ -32,42 +32,42 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
       - name: Build
         run: cargo build --release
-      - name: Setup Deploy
-        run: |
-          mkdir deploy && \
-          cp ./target/release/rust_url_shortner ./deploy/url_shortner && \
-          cp ./appspec.yml ./deploy/appspec.yml && \
-          cp ./scripts/runapp.sh ./deploy/runspp.sh &&\
-          cp ./scripts/stopapp.sh ./deploy/stopapp.sh
+      # - name: Setup Deploy
+      #   run: |
+      #     mkdir deploy && \
+      #     cp ./target/release/rust_url_shortner ./deploy/url_shortner && \
+      #     cp ./appspec.yml ./deploy/appspec.yml && \
+      #     cp ./scripts/runapp.sh ./deploy/runspp.sh &&\
+      #     cp ./scripts/stopapp.sh ./deploy/stopapp.sh
 
-      - name: Install AWS CLI 2
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install --update
-      # Configure AWS credentials
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.CODE_DEPLOYER_AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.CODE_DEPLOYER_AWS_SECRET_KEY }}
-          aws-region: us-east-1
+      # - name: Install AWS CLI 2
+      #   run: |
+      #     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      #     unzip awscliv2.zip
+      #     sudo ./aws/install --update
+      # # Configure AWS credentials
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{ secrets.CODE_DEPLOYER_AWS_ACCESS_KEY }}
+      #     aws-secret-access-key: ${{ secrets.CODE_DEPLOYER_AWS_SECRET_KEY }}
+      #     aws-region: us-east-1
 
-      # Push deployment plan to S3
-      - name: AWS Deploy Push
-        run: |
-          aws deploy push \
-          --application-name ${{ env.appname }} \
-          --description "This is a revision for the ${{ env.appname }}-${{ github.sha }}" \
-          --ignore-hidden-files \
-          --s3-location s3://${{ env.s3-bucket }}/${{ env.s3-filename }}.zip \
-          --source ./deploy
-      # Create deployment to CodeDeploy
-      - name: AWS Create Deployment
-        run: |
-          aws deploy create-deployment \
-            --application-name ${{ env.appname }} \
-            --deployment-config-name CodeDeployDefault.OneAtATime \
-            --deployment-group-name ${{ env.deploy-group }} \
-            --file-exists-behavior OVERWRITE \
-            --s3-location bucket=${{ env.s3-bucket }},key=${{ env.s3-filename }}.zip,bundleType=zip \
+      # # Push deployment plan to S3
+      # - name: AWS Deploy Push
+      #   run: |
+      #     aws deploy push \
+      #     --application-name ${{ env.appname }} \
+      #     --description "This is a revision for the ${{ env.appname }}-${{ github.sha }}" \
+      #     --ignore-hidden-files \
+      #     --s3-location s3://${{ env.s3-bucket }}/${{ env.s3-filename }}.zip \
+      #     --source ./deploy
+      # # Create deployment to CodeDeploy
+      # - name: AWS Create Deployment
+      #   run: |
+      #     aws deploy create-deployment \
+      #       --application-name ${{ env.appname }} \
+      #       --deployment-config-name CodeDeployDefault.OneAtATime \
+      #       --deployment-group-name ${{ env.deploy-group }} \
+      #       --file-exists-behavior OVERWRITE \
+      #       --s3-location bucket=${{ env.s3-bucket }},key=${{ env.s3-filename }}.zip,bundleType=zip \
