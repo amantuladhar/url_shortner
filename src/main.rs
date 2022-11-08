@@ -1,4 +1,3 @@
-use actix_files::Files;
 use actix_web::{web::Data, App, HttpServer};
 use color_eyre::Report;
 mod api;
