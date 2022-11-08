@@ -17,7 +17,6 @@ async fn main() -> Result<(), Report> {
             .service(asset::index)
             .configure(api::config)
             .app_data(Data::new(pool.clone()))
-        // .service(Files::new("/", "./static/").index_file("index.html"))
     })
     .workers(2)
     .bind(("0.0.0.0", 8080))?
