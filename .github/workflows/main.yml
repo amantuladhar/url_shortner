@@ -34,10 +34,10 @@ jobs:
         run: cargo build --release
       - name: Setup Deploy
         run: |
-          mkdir deploy \
-          cp ./target/release/rust_url_shortner ./deploy/url_shortner \
-          cp ./appspec.yml ./deploy/appspec.yml \
-          cp ./scripts/runapp.sh ./deploy/runspp.sh \
+          mkdir deploy && \
+          cp ./target/release/rust_url_shortner ./deploy/url_shortner && \
+          cp ./appspec.yml ./deploy/appspec.yml && \
+          cp ./scripts/runapp.sh ./deploy/runspp.sh &&\
           cp ./scripts/stopapp.sh ./deploy/stopapp.sh
 
       - name: Install AWS CLI 2
